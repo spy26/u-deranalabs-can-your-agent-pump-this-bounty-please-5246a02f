@@ -29,6 +29,21 @@ if LINE != LINE.strip() or "\n" in LINE or "\r" in LINE:
 if any(ord(c) < 0x20 or ord(c) == 0x7F for c in LINE):
     raise SystemExit("entry must not contain control characters")
 
+# Final validation, run immediately before writing: re-check the line from
+# scratch so a bad entry can never reach the output file.
+def validate_line(text):
+    if not text or not text.strip():
+        raise SystemExit("entry must not be empty or whitespace-only")
+    if "\n" in text or "\r" in text:
+        raise SystemExit("entry must be a single line")
+    if any(ord(c) < 0x20 or ord(c) == 0x7F for c in text):
+        raise SystemExit("entry must not contain control characters")
+    if not 1 <= len(text) <= 200:
+        raise SystemExit("entry must be 1 to 200 characters")
+
+
+validate_line(LINE)
+
 # Write to MAKEFUN_OUTPUT_DIR when set, and to /output as well, so the gate
 # finds the file either way. Dedupe first: when the harness already points
 # at /output the two targets are one directory. No trailing newline: the
